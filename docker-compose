@@ -1,0 +1,46 @@
+version: "3.7"
+services:
+
+  api:
+    build: ./api
+    environment:
+      - CONNECTION_STRING=postgres://postgres:postgres@db/postgresDB
+    command: node index.js
+    networks:
+      - Private_Network
+      - Public_Network
+    volumes:
+      - ./api:/api
+    depends_on:
+      - db
+
+  web:
+    build: ./web
+    environment:
+      - API_URL=http://api:3001/data
+    command: node index.js
+    ports:
+      - "80:3000"
+    networks:
+      - Public_Network
+    volumes:
+      - ./web:/web    
+    depends_on:
+      - api
+
+  db:
+    image: postgres:11.2-alpine
+    ports: ["5432"]
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "postgresDB"
+    networks:
+      - Private_Network
+    volumes:
+      - ./sql_scripts/:/docker-entrypoint-initdb.d
+
+networks:
+  Public_Network:
+  Private_Network:
+      
